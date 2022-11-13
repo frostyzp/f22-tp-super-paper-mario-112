@@ -1,9 +1,20 @@
-
+from cmu_112_graphics import *
+import random
 
 def main():
-    print('hello')
+    
     pass
 
 
+class Button(object):
+    # def__init__(self, name, app)
+    #     self.name = name
+    #     self.setSize(app)
+    #     self.setText()
+    #     self.pressed = False
+    pass
 
-print(main())
+def setSize(self, app):
+
+    pass
+
