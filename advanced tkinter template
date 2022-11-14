@@ -1,21 +1,36 @@
 
 
-
 # Fonts!
 # app.font = "Fixedsys"
 # canvas.create_text(600,200, text='my', font=f"{app.font} 18 bold"
-
 # Site sources for art in TP!
 
 # BG, PLAYER, PLAYFORMS, SPIKES/ENEMIES
 
-
 # Image Resizing
 # app.scaleImage
 
-
-
-
 # Sprites
 # image.crop -- sprite strip
-# 
+
+
+def keyPressed(app, event):
+    pass
+
+def keyReleased(app, event):
+    pass
+
+def mousePressed(app, event):
+    pass
+
+def mouseReleased(app, event):
+    pass
+
+def mouseMoved(app, event):
+    pass
+
+def mouseDragged(app, event):
+    pass
+
+def sizeChanged(app):
+    pass

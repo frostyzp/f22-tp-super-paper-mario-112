@@ -1,0 +1,20 @@
+import random
+from math import *
+from cmu_112_graphics import *
+
+
+##########################################
+# 
+##########################################
+
+class Level():
+
+    def __init__(self, app):
+        self.app = app
+
+
+    def drawTerrain(app, canvas):
+        pass
+
+    def drawPlatforms(app, canvas):
+        pass
