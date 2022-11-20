@@ -12,10 +12,10 @@ class Character(object):
         self.health = health
 
     def getCx(self):
-        return self.cx
+        return int(self.cx)
         
     def getCy(self):
-        return self.cy
+        return int(self.cy)
 
     def getHealth(self):
         return self.health
@@ -27,7 +27,7 @@ class Character(object):
         return self.width
 
     def getRunSpeed(self):
-        return 10
+        return 20 #20 px 
 
     def getHealth(self):
         return self.health
@@ -65,10 +65,18 @@ class Enemy(Character):
 
 class Coins(object):
     height = 20
+    coinList = []
 
     def __init__ (self, x, y):
         self.x = x
         self.y = y
+
+    def addCoin(self, coin):
+        # append coin object to a list, which will be rendered
+        self.coinList.append(coin)
+
+    def removeCoin(self, coin):
+        self.coinList.pop(coin)
 
     def earnPoint(self):
         return 5
@@ -84,35 +92,6 @@ class bulletBill(object):
         self.bullets.append(appWidth, y)
 
     def damage(self):
-        return -self.damage
+        return self.damage
 
 
-
-
-
-        ##Character Physics
-    if (app.TubeHere == False) and (app.PlatformHere == False) and (app.GapHere == False) and (app.HillHere == False) and (app.WinBlockHere == False):
-        Character.gravity(app)
-    
-    if app.GapHere == True:
-        app.isJumping = False
-
-    #All Jumping Functions
-    if app.isJumping == True:
-        app.restrictJump = True
-    else:
-        app.restrictJump = False
-    if app.isJumping == True:
-        Character.upwardsVelocity(app)
-        app.jumpDelay += 1
-        if app.jumpDelay == 10:
-            app.isJumping = False
-            app.isFalling = True
-            app.jumpDelay = 0
-            app.upVelocityDecrease = 60
-   
-    if app.isFalling == True:
-        app.fallingDelay += 1
-    if app.fallingDelay > 8:
-        app.isFalling = False
-        app.fallingDelay = 0

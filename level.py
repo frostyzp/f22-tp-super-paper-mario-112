@@ -21,10 +21,16 @@ class genLevel(object):
         # Linear interpolation
         # terrain = [(random.randrange(app.width),
         #           random.randrange(60, app.height)) for _ in range(50)]
+        rows, cols = 30, 240
+        terrain = [(cols * [0]) for r in range(rows)]
 
+        for col in range(1, 16):
+            terrain[25][col] = 'tile'
+
+        for col in range(25, 30):
+            terrain[28][col] = 'tile'
         #2D list - X, Y, Width
-        terrain = [[200,500,200], [800, 300, 200]]
-
+        # terrain = [[1,10,0],[2, 10,0]] #[200,500,200], [800, 300, 200]]
         return terrain
 
     # Estimate points between known points
