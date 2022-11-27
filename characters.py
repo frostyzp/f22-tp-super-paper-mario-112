@@ -1,14 +1,15 @@
 from cmu_112_graphics import *
 import random
+import math
 
 ##########################################
 # All characters inherit from Characters class
 ##########################################
 
 class Character(object):
-    def __init__(self,cx, cy, health):
-        self.cx = cx
-        self.cy = cy
+    def __init__(self,x, y, health):
+        self.x = x
+        self.y = y
         self.health = health
 
     def getCx(self):
@@ -24,7 +25,7 @@ class Character(object):
         return self.width
     
     def getHeight(self):
-        return self.width
+        return self.height
 
     def getRunSpeed(self):
         return 20 #20 px 
@@ -32,32 +33,28 @@ class Character(object):
     def getHealth(self):
         return self.health
 
+    # Checks within 2d list if there is collision
+    # Returns False if there is no collision
+    def collisionHit(self, array):
+        if array[math.floor(self.y / 20)][math.floor(self.x / 20)] != '':
+            return False
+        return True
+
+    # returns absolute bounds, not taking scrollX into account
+    def getBounds(self):
+        (x0, y1) = (self.x, abs(self.height - self.y))
+        (x1, y0) = (self.x + self.width, y1 - self.height)
+        return (x0, y0, x1, y1)
+
 ##########################################
 # Playable Character
 ##########################################
 
 class Mario(Character):
-    def __init__(self, cx, cy, health, height, width):
-        super().__init__(cx, cy, health)
+    def __init__(self, x, y, health, height, width):
+        super().__init__(x, y, health)
         self.height = height
         self.width = width
-
-##########################################
-# Enemies
-##########################################
-
-class Enemy(Character):
-    def __init__(self, cx, cy, health, height, width):
-        super().__init__(cx, cy, health)
-        self.health = health
-        self.height = height
-        self.width = width
-
-    def shootProjectiles(self):
-        # shoot periodically, under Timerfired
-        #
-
-        pass
 
 ##########################################
 # Ad-hoc -- Coins / Bullet Bill
@@ -65,33 +62,30 @@ class Enemy(Character):
 
 class Coins(object):
     height = 20
-    coinList = []
 
     def __init__ (self, x, y):
         self.x = x
         self.y = y
 
-    def addCoin(self, coin):
-        # append coin object to a list, which will be rendered
-        self.coinList.append(coin)
-
-    def removeCoin(self, coin):
-        self.coinList.pop(coin)
-
     def earnPoint(self):
         return 5
 
+class bulletBill(Character):
+    bulletSpeed = 15
 
-class bulletBill(object):
-
-    def __init__(self, damage):
+    def __init__(self, x, y, damage):
+        self.x = x
+        self.y = y
         self.damage = damage
-        self.bullets = []
+        self.height = 20 
+        self.width = 40
 
-    def addBullet(self, y, appWidth):
-        self.bullets.append(appWidth, y)
+    def redraw(self, app, canvas):
+        # canvas.create_oval(self.x, self.y,
+        #                    self.x+20, self.y+20,
+        #                    fill='white', outline='red', width=1)
+        canvas.create_image(self.x, self.y, 
+        image = ImageTk.PhotoImage(app.bulletBillImgS))
 
-    def damage(self):
-        return self.damage
 
 

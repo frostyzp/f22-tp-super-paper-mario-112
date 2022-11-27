@@ -11,15 +11,13 @@ from cmu_112_graphics import *
 # Referenced 112 Notes from https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html
 
 def splashScreenMode_redrawAll(app, canvas):
-    font = 'Arial 26 bold'
-    canvas.create_text(app.width/2, 250, text='Press any key for the game!',
-                       font=font, fill='black')
-
+    font = 'MARIOFontv3_2-Solid 26 bold'
     # Draw images!
     canvas.create_image(app.width/2, app.height/2,
     image = ImageTk.PhotoImage(app.splashBgS))
     canvas.create_image(app.width/2,app.height/2, 
     image= ImageTk.PhotoImage(app.titleSplashS))
+
     # # Draw mario/luigi
     canvas.create_image(app.width/2-200,app.height/2+100, 
     image= ImageTk.PhotoImage(app.splashMarioBgS))
@@ -27,7 +25,10 @@ def splashScreenMode_redrawAll(app, canvas):
     image= ImageTk.PhotoImage(app.splashLuigiBg))
 
     # Instructions on Splash - S for Easy, D for Hard
-
+    canvas.create_text(app.width/2, 400, text='Press D for Easy mode',
+                       font=font, fill='white')
+    canvas.create_text(app.width/2, 450, text='Press H for Help',
+                       font=font, fill='white')
 
 def splashScreenMode_keyPressed(app, event):
 
@@ -35,7 +36,6 @@ def splashScreenMode_keyPressed(app, event):
         app.mode = 'helpMode'
     elif (event.key == 'd'):
             app.mode = 'gameMode'
-
 
 ##########################################
 # Game Mode
@@ -46,22 +46,25 @@ def gameMode_redrawAll(app, canvas):
     ############################################
     # Draw background image
     canvas.create_image(app.width/2,app.height/2, image= ImageTk.PhotoImage(app.starterBg))
+    # for row in range(app.rows):
+    #     for col in range(app.cols):
+    #         (x0, y0, x1, y1) = getCellBounds(app, row, col)
+    #         canvas.create_rectangle(x0, y0, x1, y1,
+    #                                 fill='white', outline='black')
+
 
     drawMario(app, canvas)
+    
     drawTerrain(app, canvas)
     drawStats(app, canvas)
 
-    # ## With reference from 112 notes - 
-    # for r in range(app.rows):
-    #     for c in range(app.cols):
-    #         (x0, y0, x1, y1) = getCellBounds(app, r, c)
-    #         canvas.create_rectangle(x0, y0, x1, y1, fill='')
+    drawBulletBill(app, canvas)
 
     # Draw random platforms here
     # for (cx, cy) in app.platforms:
 
+# Referenced from 112 - https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#sidescrollerExamples
 def getCellBounds(app, row, col):
-    # aka "modelToView"
     # returns (x0, y0, x1, y1) corners/bounding box of given cell in grid
     gridWidth  = app.width - 2*app.margin
     gridHeight = app.height - 2*app.margin
@@ -77,12 +80,16 @@ def drawMario(app, canvas):
     # Draw sprite image of mario here
     # runningLeft, runningRight, jumping,
     # x1, y1 (top left), x2, y2 (bottom left)
+    (x0, y0, x1, y1) = app.playerMario.getBounds()
 
-    # canvas.create_oval(app.marioCx-app.marioW, app.marioCy-app.marioH, 
-    # app.marioCx+app.marioW, app.marioCy+app.marioH, fill='cyan')
+    # canvas.create_rectangle(app.playerMario.x - app.scrollX, app.playerMario.y,
+    # app.playerMario.x - app.scrollX + app.playerMario.width, app.playerMario.y - app.playerMario.height, 
+    # fill='red')
+    canvas.create_rectangle(x0 - app.scrollX, y0 + 40, x1 - app.scrollX, y1 + 40, 
+    fill='red')
 
-    canvas.create_oval(app.marioCx, app.marioCy, app.marioCx - app.marioW,
-    app.marioCy - app.marioH, fill='red')
+    sprite = app.sprites[app.spriteCounter]
+    canvas.create_image(x0 - app.scrollX, y0 + 40, image=ImageTk.PhotoImage(sprite))
 
 def drawTerrain(app, canvas):
     # Draw the terrain, which moves along scrollX
@@ -90,99 +97,149 @@ def drawTerrain(app, canvas):
     # for (tX, tY, tLength) in app.terrain:
     for tRow in range(app.rows):
         for tCol in range(app.cols):
-        # tLength -= app.scrollX
-        # tY += app.scrollY
-        # Draw image here
-        # canvas.create_rectangle(tX, tY, tX + tLength, app.height, 
-        # fill='lightGreen')
-            if app.terrain[tRow][tCol] == 'tile':
-                (x0, y0, x1, y1) = getCellBounds(app, tRow, tCol)
+        # Draw tile from images here
+            (x0, y0, x1, y1) = getCellBounds(app, tRow, tCol)
+            # canvas.create_rectangle(x0, y0, x1, y1, outline='black')
+            # if app.terrainObj.terrainArray(app)[tRow][tCol] == '':
+            if app.terrainObj.rawTerrain[tRow][tCol] == '':
+                print(app.terrainObj.rawTerrain[tRow][tCol])
                 x0 -= app.scrollX
                 x1 -= app.scrollX
-                canvas.create_rectangle(x0, y0, x1, y1, fill= 'yellow')
-
-        # for (cx, cy) in app.dots: ###########################
-        # cx -= app.scrollX  # <-- This is where we scroll each dot!!!
-        # canvas.create_oval(cx-r, cy-r, cx+r, cy+r, fill='lightGreen')
-
-    # app.rows += app.scrollX - MVC violation
-    # move the data in the 2d list?
+                canvas.create_rectangle(x0, y0, x1, y1, fill= 'lime green')
 
 def drawStats(app, canvas):
-    canvas.create_text(50, 20,
-    text= f'{app.playerMario.getHealth()}', fill = 'yellow', font=f'Arial {20} bold')
-    canvas.create_text(app.width/2, 20,
-    text= f'{app.gameMode}', fill = 'yellow', font=f'Arial {20} bold')
+    font = 'MARIOFontv3_2-Solid 20 bold'
+    # Stats - Health, gameMode (easy/hard), Score (points)
+    canvas.create_image(60, 30, image= ImageTk.PhotoImage(app.heartImgs))
 
+    canvas.create_text(70, 25,
+    text= '  / 5', fill = 'white', font=font)
+    canvas.create_text(55, 25,
+    text= f'{app.playerMario.getHealth()}', fill = 'white', font=font)
+
+    canvas.create_text(app.width/2, 25,
+    text= f'{app.gameMode}', fill = 'white', font=font)
+
+    canvas.create_text(app.width-50, 25,
+    text= f'{app.points}', fill = 'white', font=font)
 
 def gameMode_keyPressed(app, event):
     if (event.key == 'h'):
         app.mode = 'helpMode'
+
+# Mario with RESPECT TO THE GAME - MARIO 0 0 IS THE - CONSISTENT VARS 
     if (event.key == "Left"): 
         # Start screen (left) constraint ##############
         if app.scrollX > -10:
             app.scrollX -= app.playerMario.getRunSpeed()
-            app.scrollXObj -= 1
+            app.playerMario.x -= app.playerMario.getRunSpeed()
 
     elif (event.key == "Right"): 
         app.scrollX += app.playerMario.getRunSpeed()
-        app.scrollXObj += 1
+        app.playerMario.x += app.playerMario.getRunSpeed()
+        app.spriteCounter = (1 + app.spriteCounter) % len(app.sprites)
+
+
     elif (event.key == "Up"): 
         print("JUMP!")
         # Gravity / jump
         app.jumping = True
 
 def gravity(app):
-    yGravity = 15
+    yGravity = 20
     if app.jumping == False:
-        app.marioCy += yGravity
-
-def groudCollision(app, tX, tY):
-    # Check to see if there are any collisions with the ground
-    # Gravity is applied when there is no collision detected
-    # tX += app.scrollY
-
-    # if app.marioCy > tY: #and app.marioCx + app.marioW > cx:
-    #     return True
-    # elif app.marioCx > tX:
-    #     return True
-    # return False
-    pass
+        app.playerMario.y += yGravity
    
 def gameMode_timerFired(app):
-    app.jumpHeight = 5
-
     # Ground collision detection
-    print('Terrain[y/height][x/rows],', math.ceil(app.marioCy / 20),math.ceil(app.marioCx / 20 - app.scrollXObj))
-    print(app.terrain[math.ceil(app.marioCy / 20)][abs(math.ceil(app.marioCx / 20))])
-    # terrain[row][col] -- shouuld only be up to 30...
-
-    # If marioPos in 2d list is tile (drawn as yellow squares), then there is collision 
+    print('marioY,marioX', math.floor(app.playerMario.y / 20), math.floor(app.playerMario.x / 20))
     # 20 pixels for each of the 30 tiles = 600 x 600 screen
-    if app.terrain[math.ceil(app.marioCy / 20)][abs(math.ceil(app.marioCx / 20))] != 'tile':
-        print("######### No collision with ground #######ss####")
+
+
+    # Terrain colision check -- turn on gravity
+    if app.playerMario.collisionHit(app.terrainObj.terrainArray(app)) == False:
         gravity(app)
 
-
+    # Jump!
     app.jumpHeight = 10
     app.velocityJump = app.jumpHeight
- 
-    # Jump with Gravity
+    playerJump(app)
+    loseGame(app)
+    winGame(app)
+
+    # Add bulletBill to a list, every x frequency
+    app.bulletFreq += 1
+    # Create bullet objects, add them to a list
+    spawnBulletBill(app)
+
+    # Bullet collision detection
+    # if app.playerMario.collisionHit(app.gameGrid):
+
+    # Increase cx of projectiles
+    for bullet in app.bulletBillList:
+        bullet.x -= 15
+        print('bulletBounds,', bullet.getBounds())
+        print('marioBounds', app.playerMario.getBounds())
+        if boundsIntersect(app, app.playerMario.getBounds(), bullet.getBounds()):
+            print(app.playerMario.getBounds(), bullet.getBounds())
+            app.playerMario.health -= 1
+            # bullet.x = app.width
+            print('BULLET HIT ############################')
+            # app.bulletBillList.pop(bullet)
+        if bullet.x < 0:
+            pass
+
+    
+
+def spawnBulletBill(app):
+    i = 0
+    if (app.bulletFreq % 15 == 0):
+        newBullet = bulletBill(app.playerMario.x + (15 * 20), random.randint(24,25) * 20, 
+        app.bulletDamage)
+        # [i] = 
+        i += 1
+        app.bulletBillList.append(newBullet)
+        # print("BULLET BILLLL", math.floor(newBullet.y / 20), math.floor(newBullet.x / 20))
+        # app.gameGrid[math.floor(newBullet.y / 20)][math.floor(newBullet.x / 20)] = ''
+        # app.bulletBillList.append(newBullet[newBullet.cx][newBullet.cy])
+        # print(app.bulletBillList) # DEBUG!
+
+
+def boundsIntersect(app, boundsA, boundsB):
+    # return l2<=r1 and t2<=b1 and l1<=r2 and t1<=b2
+    (ax0, ay0, ax1, ay1) = boundsA
+    (bx0, by0, bx1, by1) = boundsB
+    # return ((ax1 == bx0) and (bx1 == ax0) and
+    #         (ay1 == by0) and (by1 == ay0))
+    return ((ax1 >= bx0) and (bx1 >= ax0) and
+            (ay1 >= by0) and (by1 >= ay0))
+
+
+def playerJump(app):
+        # Jump with Gravity
     if app.jumping == True:
         # How long mario is in the air
         app.jumpTime += 1
-        app.marioCy -= 20
-        #char.upwardsvelocity
+        app.playerMario.y -= 20
+
     if app.jumpTime == 5:
-    #     # if groudCollision(app, tX, tY) == False:
-    #         app.marioCy += 12
             app.jumping = False
             app.jumpTime = 0
 
-def drawBulletBill(app, canvas):
-    # app.bulletBill
+def loseGame(app):
+    if math.floor(app.playerMario.y / 20) >= app.cols or app.playerMario.health == 0:
+        app.mode = 'gameOverMode'
 
-    pass
+        
+def winGame(app):
+    if app.scrollX == 239:
+        app.mode = 'gameWinMode'
+
+
+def drawBulletBill(app, canvas):
+    # Loop through all bullet bills, and draw them on the canvas
+    for bullets in app.bulletBillList:
+        bullets.redraw(app, canvas)
 
 ##########################################
 # Help Mode
@@ -190,12 +247,16 @@ def drawBulletBill(app, canvas):
 
 def helpMode_redrawAll(app, canvas):
     font = 'Arial 26 bold'
-    canvas.create_text(app.width/2, 150, text='This is the help screen!', 
-                       font=font, fill='black')
-    canvas.create_text(app.width/2, 250, text='(Insert helpful message here)',
-                       font=font, fill='black')
+
+    canvas.create_image(app.width/2,app.height/2, 
+    image= ImageTk.PhotoImage(app.sideSplashBgS))
+
+    canvas.create_text(app.width/2, 150, text='Help Screen', 
+                       font=font, fill='white')
+    canvas.create_text(app.width/2, 250, text='Press R to restart',
+                       font=font, fill='white')
     canvas.create_text(app.width/2, 350, text='Press any key to return to the game!',
-                       font=font, fill='black')
+                       font=font, fill='white')
 
 def helpMode_keyPressed(app, event):
     app.mode = 'gameMode'
@@ -204,21 +265,78 @@ def helpMode_keyPressed(app, event):
 # GameOver Mode
 ##########################################
 
-def gameOverMode_redrawAll (app, canvas):
-    font = 'Arial 26 bold'
-    canvas.create_text(app.width/2, 150, text='Help Screen', 
-                       font=font, fill='black')
-    canvas.create_text(app.width/2, 250, text='Left, right, and up arrow keys to move',
-                       font=font, fill='black')
-    canvas.create_text(app.width/2, 350, text='Press any key to return to the game!',
-                       font=font, fill='black')
+def gameOverMode_redrawAll(app, canvas):
+    canvas.create_image(app.width/2,app.height/2, 
+    image= ImageTk.PhotoImage(app.sideSplashBgS))
+    font = 'Arial 30 bold'
+    subtitle = 'Arial 20'
+
+    canvas.create_text(app.width/2, 150, text='Game Over!', 
+                       font=font, fill='white')
+    canvas.create_text(app.width/2, 190, text="You didn't manage to save Luigi in time..",
+                       font=subtitle, fill='white')
+    canvas.create_text(app.width/2, 360, text='Press R to try again!',
+                       font=subtitle, fill='white')
+    canvas.create_text(app.width/2, 400, text='Press B to go back',
+                       font=subtitle, fill='white')
+
+    # canvas.create_text(app.width/2, 350, text=f' You earnt {app.points} points',
+    #                    font=font, fill='white')
 
 def gameOverMode_keyPressed(app, event):
-    app.mode = 'gameMode'
+    if (event.key == 'h'):
+        app.mode = 'helpMode'
+    elif (event.key == 'r'):
+        app.mode = 'gameMode'
+        resetGame(app)
+    elif (event.key == 'b'):
+        app.mode = 'splashScreenMode'
+        resetGame(app)
+
+# Reset all in-game variables
+def resetGame(app):
+    app.playerMario.y = app.height/2
+    app.playerMario.x = app.width/2
+    app.scrollX = 0
+    app.points = 0
+    app.bulletBillList = []
+    app.playerMario.heart = 5
+
+##########################################
+# GameWin Mode
+##########################################
+
+def gameWinMode_redrawAll(app, canvas):
+    font = 'Arial 26 bold'
+
+    canvas.create_image(app.width/2,app.height/2, 
+    image= ImageTk.PhotoImage(app.sideSplashBgS))
+
+    canvas.create_text(app.width/2, 150, text='You saved Luigi!', 
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, 250, text='R to restart',
+                       font=font, fill='black')
+    canvas.create_text(app.width/2, 350, text='B to go back',
+                       font=font, fill='black')
+
+    # canvas.create_text(app.width/2, 350, text=f' You earnt {app.points} points',
+    #                    font=font, fill='black')
+
+def gameOverMode_keyPressed(app, event):
+    if (event.key == 'r'):
+            app.mode = 'gameMode'
+            resetGame(app)
+    elif (event.key == 'b'):
+            app.mode = 'splashScreenMode'
+            resetGame(app)
 
 ##########################################
 # Main App
 ##########################################
+
+def createImg(app, source, scale):
+    loadImg = app.loadImage(source)
+    return app.scaleImage(loadImg, scale)
 
 def appStarted(app): 
     app.mode = 'splashScreenMode'
@@ -226,44 +344,70 @@ def appStarted(app):
     app.gameMode = 'Easy'
 
     app.scrollX = 0
-    app.scrollY = 0
-    app.scrollXObj = 0
 
     app.cols = 30
     app.rows = 30
     app.margin = 5
+    
+    # Stats for the game
+    app.points = 0
 
-    # 60 x 60 grid of 10
+    # 30 x 30 grid of 20 for main game screen
     app.screenTiles = [ ([''] * app.cols) for i in range(app.rows)]
-
 
     ##########################################
     # Images from https://www.mariowiki.com/Gallery:Super_Paper_Mario 
-    app.starterBg = app.loadImage('images/gameBg.jpg')
-    app.splashBg = app.loadImage('images/splash/splashBg.png')
-    app.splashBgS = app.scaleImage(app.splashBg, 4/5)
-    app.titleSplash = app.loadImage('images/splash/titleSplash.png')
-    app.titleSplashS = app.scaleImage(app.titleSplash, 1/3)
+    app.starterBg = createImg(app, 'images/gameBg.jpg', 1)
+    app.splashBgS = createImg(app, 'images/splash/splashBg.png', 4/5)
 
-    app.splashMarioBg = app.loadImage('images/splash/marioSplash.png')
-    app.splashMarioBgS = app.scaleImage(app.splashMarioBg, 2/3)
+    # app.titleSplash = app.loadImage('images/splash/titleSplash.png')
+    # app.titleSplashS = app.scaleImage(app.titleSplash, 1/3)
+    app.titleSplashS = createImg(app, 'images/splash/titleSplash.png', 1/3)
+
+    # app.sideSplashBg = app.loadImage('images/splash/sideSplash.png')
+    # app.sideSplashBgS = app.scaleImage(app.sideSplashBg, 9/10)
+    app.sideSplashBgS = createImg(app, 'images/splash/sideSplash.png', 9/10)
+
+    # app.splashMarioBg = app.loadImage('images/splash/marioSplash.png')
+    # app.splashMarioBgS = app.scaleImage(app.splashMarioBg, 2/3)
+    app.splashMarioBgS = createImg(app, 'images/splash/marioSplash.png', 2/3)
+
     app.splashLuigiBg = app.loadImage('images/splash/luigiSplash.png')
     app.splashLuigiBgS = app.scaleImage(app.splashLuigiBg, 1/10)
+    app.splashMarioBgS = createImg(app, 'images/splash/marioSplash.png', 2/3)
+
+
+    app.bulletBillImg = app.loadImage('images/characters/bulletBill.png')
+    app.bulletBillImgS = app.scaleImage(app.bulletBillImg, 2/5)
+
+    # Images from https://www.spriters-resource.com/wii/superpapermario/ 
+    app.heartImg = app.loadImage('images/heart.png')
+    app.heartImgs = app.scaleImage(app.heartImg, 1/11)
+
+    # With reference from https://www.cs.cmu.edu/~112/notes/notes-animations-part4.html#spritesheetsWithCropping
+    # Sprite images - 1440 x 360 - 480 / still  
+    # Scaled down sprite images -- 576 x 144 - 192
+    spritestripWalkR = app.loadImage('images/characters/marioWalkR.png')
+    spriteWalkR = app.scaleImage(spritestripWalkR, 2/5)
+    spritestripWalkR = app.loadImage('images/characters/marioWalkR.png')
+    spriteWalkR = app.scaleImage(spritestripWalkR, 2/5)
+    
+    app.sprites = [ ]
+    for i in range(3):
+        sprite = spriteWalkR.crop((10+192*i, 10, 182+192*i, 144))
+        app.sprites.append(sprite)
+    app.spriteCounter = 0
+
+    # marioWalkL.png / marioJumpR.png marioJumpL.png
+
+
 
     # Instantiate Terrain ##########################################
-    app.terranObj = genLevel('test')
-    app.terrain = app.terranObj.terrainArray(app)
+    app.terrainObj = genLevel(5)
 
     # Instantiate Mario ##########################################
-    cx, cy, health, height, width = app.width/2, app.height/2, 5, 80, 50
-
-    app.playerMario = Mario(cx, cy, health, height, width)
-    app.marioCx = app.playerMario.getCx()
-    app.marioCy = app.playerMario.getCy()
-    app.marioH = app.playerMario.getHeight()
-    app.marioW = app.playerMario.getWidth()
-    app.marioHealth = app.playerMario.getHealth()
-    # app.marioPos = [app.marioCx][app.marioCy]
+    x, y, health, height, width = app.width/2, app.height/2, 5, 40, 20
+    app.playerMario = Mario(x, y, health, height, width)
 
     app.jumping = False
     app.jumpTime = 0
@@ -272,7 +416,9 @@ def appStarted(app):
 
 
     # Instantiate bulletBills ##########################################
-    app.bulletBill = bulletBill(2)
+    app.bulletFreq = 0
+    app.bulletBillList = []
+    app.bulletDamage = 2
 
 def appStopped(app):
     app.messages.append('appStopped')
