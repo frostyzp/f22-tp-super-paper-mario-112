@@ -36,11 +36,9 @@ class Character(object):
     # Checks within 2d list of terrain if there is collision
     # Returns False if there is no collision
     def collisionHit(self, array):
-        check = array[math.floor(self.y // 20)][math.floor(self.x // 20)]
-        if check != 'ground': # and check != 'belowGround':
+        checkGround = array[math.floor(self.y // 20)][math.floor(self.x // 20)]
+        if checkGround != 'ground': 
             return False
-        # elif check != 'belowGround':
-        #     return False
         return True
 
     # returns absolute bounds, not taking scrollX into account
@@ -76,12 +74,14 @@ class Mario(Character):
         elif app.jumping == True:
             canvas.create_image(x0 - app.scrollX, y0 + 5, image=ImageTk.PhotoImage(app.spriteJumpR))
 
+        # Drawing damage feedback from enemeies/projectiles
         if app.damageFeedback:
             coordX = self.x
             coordY = self.y
             canvas.create_image(coordX - app.scrollX, coordY, 
         image = ImageTk.PhotoImage(app.damageFeedbackImgS))
 
+        # Drawing invincibility, if obtained in the level
         if app.invincibility:
             canvas.create_image(x0 - app.scrollX - 20, y0 + 5, image=ImageTk.PhotoImage(app.invincibilityPowerUp))
             canvas.create_text(x0 - app.scrollX - 20, y0 - self.height - 20, text='Invincible!',
@@ -113,9 +113,9 @@ class Coins(object):
         self.x = x
         self.y = y
 
-    def earnPoint(self):
-        return 5
-
     def redraw(self, app, canvas):
-        pass
+
+        photoImage = app.spritePhotoImages[app.spriteCounterCoin]
+        canvas.create_image(200, 200, image=photoImage)
+        
 
