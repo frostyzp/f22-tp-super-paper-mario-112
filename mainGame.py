@@ -6,6 +6,7 @@
 #################################################################
 
 import random
+import time
 from math import *
 from characters import *
 from level import *
@@ -48,7 +49,7 @@ def splashScreenMode_keyPressed(app, event):
             app.terrainObj = genLevel(11)
             app.terrain = app.terrainObj.generateTerrainArray()
             # Determine how often bullets are spawned
-            app.bulletOccurence = 20
+            app.bulletOccurence = 25
 
     elif (event.key == 'f'):
             app.mode = 'gameMode'
@@ -57,7 +58,7 @@ def splashScreenMode_keyPressed(app, event):
             app.terrainObj = genLevel(5)
             app.terrain = app.terrainObj.generateTerrainArray()
             # Determine how often bullets are spawned
-            app.bulletOccurence = 10
+            app.bulletOccurence = 15
 
 
 ##########################################
@@ -113,52 +114,58 @@ def gameMode_keyPressed(app, event):
     if (event.key == 'h'):
         app.mode = 'helpMode'
 
-# Mario with RESPECT TO THE GAME
+# scrollX keeps track of objects in the game as Mario moves
+# mario x and y are also kept track with respect to that
     if (event.key == "Left"): 
-        # Prevent users from going left during the start of the game (offScreen)
+        app.runSpeed = 0
+        # OOB Check to Prevent users from going left during the start of the 
+        # game (offScreen)
         if app.scrollX > -10:
+            if app.jumping == True:
+                app.runSpeed = 5
             app.spriteMode = 'Left'
-            app.scrollX -= app.playerMario.getRunSpeed()
-            app.playerMario.x -= app.playerMario.getRunSpeed()
+            app.scrollX -= app.playerMario.getRunSpeed() + app.runSpeed
+            app.playerMario.x -= app.playerMario.getRunSpeed() 
             app.spriteCounter = (1 + app.spriteCounter) % len(app.spritesWalkL)
 
     elif (event.key == "Right"): 
+        app.runSpeed = 0
+        # Check for collision
+        # if app.playerMario.sideCollision(app.terrain) == False or app.jumping:
         app.spriteMode = 'Right'
-        app.scrollX += app.playerMario.getRunSpeed()
-        app.playerMario.x += app.playerMario.getRunSpeed()
+        if app.jumping == True:
+            app.runSpeed = 10
+        app.scrollX += app.playerMario.getRunSpeed() + app.runSpeed
+        app.playerMario.x += app.playerMario.getRunSpeed() + app.runSpeed         
         app.spriteCounter = (1 + app.spriteCounter) % len(app.spritesWalkR)
 
     # Gravity / jump 
     elif (event.key == "Up"): 
-        app.spriteMode = 'Up'
-        if app.airTime == 0:
+        # Can only jump if mario is not in the air
+        if app.spriteInAir == False:
             app.jumping = True
-
-    # TEST KEY! Powerup!
-    elif (event.key == "Down"): 
-        if app.invincibility:
-            app.invincibility = False
-        else:
-            app.invincibility = True
-
+    
+    elif (event.key == "q"):
+        app.playerMario.health = 1
+        
 
 def gravity(app):
     yGravity = 20
     # When mario is not jumping, gravity is turned on
     if app.jumping == False:
-        app.playerMario.y += yGravity
-   
+        app.playerMario.y += yGravity * app.dy
+
 def gameMode_timerFired(app):
-
-    if app.gameDifficulty == 'Hard':
-        app.terrainIterations = 5
-    else:
-        app.terrainIterations = 9 #9
-
     # 20 pixels for each of the 30 tiles = 600 x 600 screen
     # Terrain colision check -- turn on gravity
+
+    app.spriteInAir = False
+    app.dy = 2
+
     if app.playerMario.collisionHit(app.terrain) == False:
         gravity(app)
+        app.spriteInAir = True
+    
 
     playerJump(app)
 
@@ -168,6 +175,10 @@ def gameMode_timerFired(app):
     
     if app.dmgTimerRun == True:
         app.damageFeedbackTimePassed += 1
+        if app.damageFeedbackTimePassed >= 3:
+            app.damageFeedbackTimePassed = 0
+            app.damageFeedback = False
+            app.dmgTimerRun = False
 
     spawnBulletBill(app)
 
@@ -175,9 +186,6 @@ def gameMode_timerFired(app):
 
     loseGame(app)
     winGame(app)
-
-def resetDmgCounter(app):
-    app.damageFeedbackTimePassed = 0
 
 # Periodically spawn bulletBills onto the screen, tracking mario Y position
 def spawnBulletBill(app):
@@ -192,16 +200,10 @@ def spawnBulletBill(app):
         bullet.x -= 15 
         if boundsIntersect(app, app.playerMario.getBounds(), bullet.getBounds()):
             if app.invincibility == False:
-                app.playerMario.health -= 1
-
+                app.playerMario.health -= 1            
             app.bulletBillList.remove(bullet)
             app.damageFeedback = True
             app.dmgTimerRun = True
-            if app.damageFeedbackTimePassed >= 3:
-                print("Remove explosion feedback")
-                resetDmgCounter(app)               
-                app.damageFeedback = False
-                app.dmgTimerRun = False
         # OOO check
         if bullet.x < 0:
             app.bulletBillList.remove(bullet)
@@ -216,23 +218,16 @@ def boundsIntersect(app, boundsA, boundsB):
 # Jump with Gravity
 def playerJump(app):
 
+    # When Up key is pressed, allow jumping
     if app.jumping == True:
-        # How long mario is in the air
-        app.airTime += 1
         app.jumpTime += 1
-        app.dy += 1.2
-        app.playerMario.y -= 7 * app.dy
+        app.dy -= 0.01
+        app.playerMario.y -= 12 * app.dy
 
     if app.jumpTime == 5:
-            app.airTime += 1
-            app.dy = 0
+            app.dy = 2
             app.jumping = False
             app.jumpTime = 0
-
-    # Own timer to disallow players to jump while airbone 
-    if app.airTime == 6:
-            app.airTime = 0
-
 
 def loseGame(app):
     if math.floor(app.playerMario.y / 20) >= app.cols or app.playerMario.health <= 0:
@@ -372,7 +367,7 @@ def appStarted(app):
     ##########################################
     # Images from https://www.mariowiki.com/Gallery:Super_Paper_Mario 
     app.starterBg = createImg(app, 'images/gameBg.jpg', 1)
-    app.splashBgS = createImg(app, 'images/splash/splashBg.jpg', 4/5)
+    app.splashBgS = createImg(app, 'images/splash/splashBg.jpg', 1)
 
     app.titleSplashS = createImg(app, 'images/splash/titleSplash.png', 1/3)
     app.sideSplashBgS = createImg(app, 'images/splash/sideSplash.png', 9/10)
@@ -408,18 +403,19 @@ def appStarted(app):
 
         app.spritesWalkR.append(spriteR)
         app.spritesWalkL.append(spriteL)
-        app.spriteCounter = 0
+        app.spriteCounter = 1
 
     # Instantiate Mario ##########################################
     x, y, health, height, width = app.width/2, app.height/2, 5, 40, 20
     app.playerMario = Mario(x, y, health, height, width)
 
+    app.runSpeed = 0
     app.jumping = False
-    app.spriteJumping = False
+    app.spriteInAir = False
     app.jumpTime = 0
     app.airTime = 0
-    app.dy = 0
-    app.spriteMode = 'right'
+    app.dy = 2
+    app.spriteMode = 'Right'
     app.invincibility = False
 
     # Instantiate bulletBills ##########################################
@@ -430,7 +426,10 @@ def appStarted(app):
     app.damageFeedbackTimePassed = 0
     app.dmgTimerRun = False
 
-    # Instantiate coins 
+    # Powerups ##########################################
+    app.powerUpSpawn = False
+
+    # Instantiate coins ##########################################
     app.coinsList = []
     app.coinPoints = 5
 

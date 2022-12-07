@@ -68,16 +68,19 @@ class genLevel(object):
             randoSeed = random.randint(1, 10)
             if randoSeed >= 3 or self.iterations > 5:
                 # Draw platform and tiles to bottom of the screen (tube-like)
-                for i in range(random.randint(7,10)):
+                for i in range(random.randint(10,12)):
                     if x + i < cols:
                         terrain[y][x + i] = 'ground'
+                        terrain[y - 1][x + i] = 'ground'
                         for ground in range(y + 1, rows):
-                            terrain[ground][x + i] = 'ground'
+                            terrain[ground][x + i] = 'ground' #belowGround
             else:
                 # Only draw platform itself
-                for i in range(random.randint(6,9)):
+                for i in range(random.randint(9,11)):
                     if x + i < cols:
                         terrain[y][x + i] = 'ground'
+                        terrain[y - 1][x + i] = 'ground'
+
         
         return terrain
 
@@ -93,12 +96,16 @@ class genLevel(object):
                     x0 -= app.scrollX
                     x1 -= app.scrollX
                     canvas.create_rectangle(x0, y0, x1, y1, fill= 'green3', outline = 'darkgreen')
+
                 elif app.terrain[tRow][tCol] == 'belowGround':
                     x0 -= app.scrollX
                     x1 -= app.scrollX
                     brown = 'darkorange4'
                     canvas.create_rectangle(x0, y0, x1, y1, fill= brown, outline = 'black')
-
+        # if app.playerMario.health < 4 and app.powerUpSpawn == False:
+        #     print("Poweup Spawned!")
+        #     canvas.create_image(x0 - app.scrollX - 20, y0 - 5, image=ImageTk.PhotoImage(app.invincibilityPowerUp))
+            # dapp.powerUpSpawn = True
         # Draw door at the end (win game condition)
         if app.scrollX > app.winScrollXDist - 200:
             canvas.create_image((app.width), app.height/2, 

@@ -37,7 +37,18 @@ class Character(object):
     # Returns False if there is no collision
     def collisionHit(self, array):
         checkGround = array[math.floor(self.y // 20)][math.floor(self.x // 20)]
+
         if checkGround != 'ground': 
+            return False
+        # if checkGround2 != 'ground':
+            # return False
+
+        return True
+
+    def sideCollision(self, array):
+        checkGround2 = array[math.floor((self.y - 20) // 20)][math.floor((self.x + 20) // 20)]
+        
+        if self.collisionHit(array) == True and checkGround2 != 'ground':
             return False
         return True
 
@@ -63,21 +74,20 @@ class Mario(Character):
         spriteL = app.spritesWalkL[app.spriteCounter]
     
         # Drawing appropiate sprite images
-        if app.jumping == False and app.spriteMode == 'Right':
+        if app.spriteInAir == False and app.spriteMode == 'Right':
             canvas.create_image(x0 - app.scrollX, y0 + 5, image=ImageTk.PhotoImage(spriteR))
-        elif app.jumping == False and app.spriteMode == 'Left':
+        elif app.spriteInAir == False and app.spriteMode == 'Left':
             canvas.create_image(x0 - app.scrollX, y0 + 5, image=ImageTk.PhotoImage(spriteL))
-        elif app.jumping == True and app.spriteMode == 'Left':
+        elif app.spriteInAir == True and app.spriteMode == 'Left':
             canvas.create_image(x0 - app.scrollX, y0 + 5, image=ImageTk.PhotoImage(app.spriteJumpL))
-        elif app.jumping == True and app.spriteMode == 'Right':
-            canvas.create_image(x0 - app.scrollX, y0 + 5, image=ImageTk.PhotoImage(app.spriteJumpR))
-        elif app.jumping == True:
+        elif app.spriteInAir == True and app.spriteMode == 'Right':
             canvas.create_image(x0 - app.scrollX, y0 + 5, image=ImageTk.PhotoImage(app.spriteJumpR))
 
+            
         # Drawing damage feedback from enemeies/projectiles
         if app.damageFeedback:
             coordX = self.x
-            coordY = self.y
+            coordY = self.y - 20
             canvas.create_image(coordX - app.scrollX, coordY, 
         image = ImageTk.PhotoImage(app.damageFeedbackImgS))
 
@@ -114,7 +124,7 @@ class Coins(object):
         self.y = y
 
     def redraw(self, app, canvas):
-
+        pass
         photoImage = app.spritePhotoImages[app.spriteCounterCoin]
         canvas.create_image(200, 200, image=photoImage)
         
